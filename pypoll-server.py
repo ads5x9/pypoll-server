@@ -40,8 +40,10 @@ class clientThread(Thread):
 	def run(self):
 		self.connected = True
 		while True:
+			print("sending")
 			self.conn.send(makeLogLine())
 			data = self.conn.recv(2048)
+			print("sent")
 			if not data: break
 		#print("Client thread reached break statement.")
 		self.connected = False
