@@ -18,6 +18,7 @@ def eprint(*args, **kwargs):
 
 class clientInfo():
 	def __init__(self, hostname, cpuinfo, cpucount, meminfo, disks, disksFree, accessTime):
+		self.hostname = hostname
 		self.cpuinfo = cpuinfo
 		self.cpucount = cpucount
 		self.meminfo = meminfo
