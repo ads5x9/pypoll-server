@@ -52,9 +52,9 @@ class clientThread(Thread):
 def main():
 	# Before we mess around with SSL, let's try to get a plaintext socket working.
 	s = socket.socket()
-	host = socket.gethostname()
+	#host = socket.gethostname()
 	port = 25560		# Hopefully, no one will mistake us for a Minecraft server.
-	s.bind((host, port))
+	s.bind(('', port))
 	threads = []
 	try:
 		while True:
