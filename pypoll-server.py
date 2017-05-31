@@ -1,8 +1,13 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import socket
 from threading import Thread
 import time
 import ssl
+
+def eprint(*args, **kwargs):
+        import sys
+        print(*args, file=sys.stderr, **kwargs)
 
 # Todo List:
 # 1. Make client response thread
@@ -12,23 +17,35 @@ import ssl
 # 4. "log line" creation on local machine.
 
 class clientInfo():
-	def __init__(self):
-		self.disks = []
-		self.loadAvg = ""
-		self.hostname = ""
-		self.accessTime = ""
+	def __init__(self, cpuinfo, cpucount, meminfo, disks, disksFree, accessTime):
+		self.cpuinfo = cpuinfo
+		self.cpucount = cpucount
+		self.meminfo = meminfo
+		self.disks = disks
+		self.disksFree = disksFree
+		self.accessTime = accessTime
 
 # makeLogLine - This function will obtain the data from the local machine, store it in a class,
 # and parse that class into a json string. String returned to calling function.
 # It should be easy for the client or any other applications to parse this Json. :)
 def makeLogLine():
-	import json
-	cliInf = clientInfo
-	# Get cpu info
-	# Get RAM utilization
-	# Get disk free space info
-	return "Just testing for now."
+	import jsonpickle
+	import psutil
+	import datetime
+	cpuinfo    =	 psutil.cpu_percent(interval=1)		# Get cpu info
+	cpucount   =	 psutil.cpu_count()
+	meminfo    =	 psutil.virtual_memory()		# Get RAM utilization
+	disks      =	 psutil.disk_partitions()		# Get disk free space info
+	disksFree  =	 (psutil.disk_usage(x.mountpoint) for x in disks)
+	accessTime =	 str(datetime.datetime.now())
+	cliInf     =	 clientInfo(cpuinfo, cpucount, meminfo, disks, disksFree, accessTime)
+	mystr      =	 jsonpickle.encode(cliInf)
+	return mystr
 
+# Handle one single client in a multithreaded fashion.
+# Note that, unlike most servers, we don't have an infinite loop here.
+# That's just because the server is tailored to the end goal of
+# sending ONE singular string.
 class clientThread(Thread):
 	def __init__(self, conn, ip, port):
 		Thread.__init__(self)
@@ -36,16 +53,9 @@ class clientThread(Thread):
 		self.ip = ip
 		self.port = port
 		self.connected = False
-		#print("[+] New thread started for {}:{}".format(ip, port))
 	def run(self):
 		self.connected = True
-		while True:
-			print("sending")
-			self.conn.send(makeLogLine())
-			data = self.conn.recv(2048)
-			print("sent")
-			if not data: break
-		#print("Client thread reached break statement.")
+		self.conn.send(makeLogLine())
 		self.conn.close()
 		self.connected = False
 
@@ -64,11 +74,11 @@ def main():
 			newthread = clientThread(conn, ip, port)
 			newthread.start()
 			threads.append(newthread)
-			for t in threads:		# Basically, garbage collection
+			for t in threads:		# Basically, garbage collection. Kinda.
 				if t.connected == False:
 					threads.remove(t)
 	except KeyboardInterrupt as e:
-		print("Keyboard interrupt caught, shutting server down as gracefully as possible.")
+		eprint("Keyboard interrupt caught, shutting server down as gracefully as possible.")
 	finally:
 		for t in threads:
 			t.join()
