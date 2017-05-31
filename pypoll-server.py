@@ -46,6 +46,7 @@ class clientThread(Thread):
 			print("sent")
 			if not data: break
 		#print("Client thread reached break statement.")
+		self.conn.close()
 		self.connected = False
 
 
@@ -71,6 +72,7 @@ def main():
 	finally:
 		for t in threads:
 			t.join()
+		s.close()
 
 if __name__ == "__main__":
 	main()
