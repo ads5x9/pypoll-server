@@ -17,7 +17,7 @@ def eprint(*args, **kwargs):
 # 4. "log line" creation on local machine.
 
 class clientInfo():
-	def __init__(self, cpuinfo, cpucount, meminfo, disks, disksFree, accessTime):
+	def __init__(self, hostname, cpuinfo, cpucount, meminfo, disks, disksFree, accessTime):
 		self.cpuinfo = cpuinfo
 		self.cpucount = cpucount
 		self.meminfo = meminfo
@@ -32,14 +32,15 @@ def makeLogLine():
 	import jsonpickle
 	import psutil
 	import datetime
-	cpuinfo    =	 psutil.cpu_percent(interval=1)		# Get cpu info
-	cpucount   =	 psutil.cpu_count()
-	meminfo    =	 psutil.virtual_memory()		# Get RAM utilization
-	disks      =	 psutil.disk_partitions()		# Get disk free space info
-	disksFree  =	 (psutil.disk_usage(x.mountpoint) for x in disks)
-	accessTime =	 str(datetime.datetime.now())
-	cliInf     =	 clientInfo(cpuinfo, cpucount, meminfo, disks, disksFree, accessTime)
-	mystr      =	 jsonpickle.encode(cliInf)
+	hostname   =	socket.getfqdn()
+	cpuinfo    =	psutil.cpu_percent(interval=1)		# Get cpu info
+	cpucount   =	psutil.cpu_count()
+	meminfo    =	psutil.virtual_memory()			# Get RAM utilization
+	disks      =	psutil.disk_partitions()		# Get disk free space info
+	disksFree  =	(psutil.disk_usage(x.mountpoint) for x in disks)
+	accessTime =	str(datetime.datetime.now())
+	cliInf     =	clientInfo(hostname, cpuinfo, cpucount, meminfo, disks, disksFree, accessTime)
+	mystr      =	jsonpickle.encode(cliInf)
 	return mystr
 
 # Handle one single client in a multithreaded fashion.
