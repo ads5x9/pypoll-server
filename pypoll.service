@@ -1,0 +1,13 @@
+# This file belongs in /etc/systemd/system/
+[Unit]
+Description=PyPoll Server
+After=multi-user.target
+
+[Service]
+Type=simple
+# We would like to use type=notify in the future.
+ExecStart=/scripts/pypoll-server.py
+Restart=on-abort
+
+[Install]
+WantedBy=multiuser.target
